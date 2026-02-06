@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebP Converter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                primary: "#4A90E2",
+                accent: "#E94E77",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  </head>
+  <body class="min-h-screen bg-slate-100 text-slate-900">
+    <main class="mx-auto w-full max-w-6xl px-4 py-8 md:px-8">
+      <section class="mb-6">
+        <h1 class="text-3xl font-bold tracking-tight text-brand-primary">WebP Converter</h1>
+        <p class="mt-2 max-w-3xl text-sm text-slate-600">
+          Converti e comprimi immagini in autonomia. Nessun upload al server: tutto avviene nel browser.
+        </p>
+      </section>
+
+      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div
+          id="dropzone"
+          class="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-center transition hover:border-brand-primary hover:bg-blue-50"
+        >
+          <p class="text-lg font-semibold">Trascina qui le immagini</p>
+          <p class="mt-2 text-sm text-slate-600">Formati supportati: JPG/JPEG, PNG, WebP</p>
+          <p class="text-sm text-slate-600">Massimo 5 file, 15 MB per file</p>
+          <button
+            id="pickFilesBtn"
+            type="button"
+            class="mt-5 rounded-lg bg-brand-primary px-5 py-2.5 font-semibold text-white transition hover:opacity-90"
+          >
+            Seleziona immagini
+          </button>
+          <input id="fileInput" class="hidden" type="file" accept="image/jpeg,image/png,image/webp" multiple />
+        </div>
+
+        <div class="mt-6 flex flex-col gap-4 rounded-xl border border-slate-200 p-4 md:flex-row md:items-center md:justify-between">
+          <label for="qualitySlider" class="font-medium">Qualita WebP: <span id="qualityValue">80</span></label>
+          <input id="qualitySlider" type="range" min="50" max="100" value="80" class="w-full md:max-w-md" />
+          <button
+            id="convertBtn"
+            type="button"
+            class="rounded-lg bg-brand-accent px-5 py-2.5 font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:bg-slate-400"
+            disabled
+          >
+            Converti in WebP
+          </button>
+        </div>
+
+        <div id="statusPanel" class="mt-4 hidden rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <p class="font-medium">Stato batch: <span id="batchCounter">0/0</span></p>
+          <p class="text-sm text-slate-600">Tempo trascorso: <span id="elapsedTime">00:00</span></p>
+        </div>
+
+        <div id="errorBox" class="mt-4 hidden rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700"></div>
+      </section>
+
+      <section class="mt-6 grid gap-6 lg:grid-cols-2">
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 class="text-xl font-semibold">File caricati</h2>
+          <ul id="inputList" class="mt-4 grid gap-3 sm:grid-cols-2"></ul>
+          <p id="emptyInput" class="mt-4 text-sm text-slate-500">Nessun file selezionato.</p>
+        </div>
+
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-semibold">Risultati WebP</h2>
+            <button
+              id="downloadAllBtn"
+              type="button"
+              class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled
+            >
+              Scarica tutto (ZIP)
+            </button>
+          </div>
+          <ul id="outputList" class="mt-4 grid gap-3 sm:grid-cols-2"></ul>
+          <p id="emptyOutput" class="mt-4 text-sm text-slate-500">Nessun risultato disponibile.</p>
+        </div>
+      </section>
+    </main>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>
