@@ -1,0 +1,43 @@
+name: Package ZIP
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build package metadata
+        run: |
+          mkdir -p package
+          cp index.html app.js converter-worker.js README.md PRD.md package/
+          COMMIT_DATE=$(git show -s --date=short --format=%cd "$GITHUB_SHA")
+          SHORT_SHA=$(echo "$GITHUB_SHA" | cut -c1-7)
+          VERSION="v0.3.${GITHUB_RUN_NUMBER}"
+          cat > package/version.json <<EOF
+          {
+            "version": "${VERSION}",
+            "commit": "${SHORT_SHA}",
+            "commitDate": "${COMMIT_DATE}"
+          }
+          EOF
+
+      - name: Create zip
+        run: |
+          mkdir -p dist
+          ZIP_NAME="sf-batch-converter-${GITHUB_SHA::7}.zip"
+          (cd package && zip -r "../dist/${ZIP_NAME}" .)
+          echo "ZIP_NAME=${ZIP_NAME}" >> "$GITHUB_ENV"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sf-batch-converter-${{ github.sha }}
+          path: dist/${{ env.ZIP_NAME }}
+          if-no-files-found: error

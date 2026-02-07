@@ -19,6 +19,8 @@ const errorBox = document.getElementById("errorBox");
 const statusPanel = document.getElementById("statusPanel");
 const batchCounter = document.getElementById("batchCounter");
 const elapsedTime = document.getElementById("elapsedTime");
+const appVersion = document.getElementById("appVersion");
+const appCommitDate = document.getElementById("appCommitDate");
 
 const OUTPUT_FORMATS = {
   "image/webp": { ext: "webp", label: "WebP" },
@@ -34,6 +36,11 @@ let converted = [];
 let startedAt = 0;
 let elapsedTimer = null;
 let completedCount = 0;
+
+const FALLBACK_BUILD_META = {
+  version: "v0.3.0-dev",
+  commitDate: "2026-02-07",
+};
 
 qualitySlider.addEventListener("input", () => {
   qualityValue.textContent = qualitySlider.value;
@@ -68,6 +75,7 @@ window.addEventListener("beforeunload", () => {
 
 initConverterEngine();
 updateOutputControls();
+loadBuildMeta();
 
 function handleFiles(fileList) {
   clearError();
@@ -333,6 +341,21 @@ function initConverterEngine() {
     worker = null;
     workerEnabled = false;
     showError("Worker non disponibile: conversione attiva senza worker.");
+  }
+}
+
+async function loadBuildMeta() {
+  try {
+    const response = await fetch("./version.json", { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const meta = await response.json();
+    appVersion.textContent = meta.version || FALLBACK_BUILD_META.version;
+    appCommitDate.textContent = meta.commitDate || FALLBACK_BUILD_META.commitDate;
+  } catch (_error) {
+    appVersion.textContent = FALLBACK_BUILD_META.version;
+    appCommitDate.textContent = FALLBACK_BUILD_META.commitDate;
   }
 }
 

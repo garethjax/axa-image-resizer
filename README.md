@@ -3,14 +3,19 @@
 Applicazione statica browser-based per convertire immagini in WebP in autonomia.
 Parte della suite di tools di [Search Foundry](https://www.searchfoundry.pro).
 
+## Uso interno (stato attuale)
+Questo repository e pensato per demo interna ai colleghi.
+La visibilita resta privata finche il tool non viene pubblicato.
+
 ## Stato attuale
 - Upload: JPG/JPEG, PNG, WebP.
 - Limiti: max 10 file, 15 MB per file.
 - Formato output selezionabile: WebP, JPEG, PNG.
 - Qualita: slider 50-100 (usato per WebP/JPEG, non applicato a PNG).
 - Conversione in worker dedicato.
-- Indicatori processo: `n/5` + timer elapsed.
+- Indicatori processo: `n/10` + timer elapsed.
 - Download singolo o ZIP.
+- Dashboard con versione e commit date.
 
 ## Avvio locale
 Avvia un server statico dalla root progetto, ad esempio:
@@ -30,3 +35,7 @@ In modalita `file://` l'app usa fallback senza worker (funziona, ma puo essere m
 ## Nota tecnica
 Questa prima versione usa l'encoder WebP del browser nel worker per accelerare l'MVP.
 L'interfaccia worker e pronta per sostituire il motore con libwebp WASM nel prossimo step.
+
+## ZIP automatico su update
+E presente il workflow GitHub Actions `/Users/garethjax/code/wasm-picture/.github/workflows/package-zip.yml`.
+Ad ogni push su `main` (o esecuzione manuale) viene creato uno ZIP aggiornato scaricabile dagli artifact del run.
