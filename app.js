@@ -1,5 +1,9 @@
 const MAX_FILES = 10;
 const MAX_FILE_SIZE = 15 * 1024 * 1024;
+const QUALITY_INPUT_MIN = 1;
+const QUALITY_SLIDER_MIN = 50;
+const QUALITY_MAX = 100;
+const QUALITY_DEFAULT = 80;
 const SUPPORTED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 const dropzone = document.getElementById("dropzone");
@@ -38,17 +42,19 @@ let converted = [];
 let startedAt = 0;
 let elapsedTimer = null;
 let completedCount = 0;
+let currentQuality = QUALITY_DEFAULT;
 
 const FALLBACK_BUILD_META = {
   version: "v0.1.0",
   commitDate: "2026-02-07",
 };
 
-qualitySlider.addEventListener("input", () => setQualityValue(qualitySlider.value));
-qualityInput.addEventListener("input", () => setQualityValue(qualityInput.value));
+qualitySlider.addEventListener("input", () => setQualityFromSlider(qualitySlider.value));
+qualityInput.addEventListener("input", () => setQualityFromInput(qualityInput.value));
+qualityInput.addEventListener("blur", () => setQualityFromInput(qualityInput.value));
 outputFormat.addEventListener("change", updateOutputControls);
 presetButtons.forEach((button) => {
-  button.addEventListener("click", () => setQualityValue(button.dataset.qualityPreset));
+  button.addEventListener("click", () => setQualityFromPreset(button.dataset.qualityPreset));
 });
 
 pickFilesBtn.addEventListener("click", () => fileInput.click());
@@ -79,7 +85,7 @@ window.addEventListener("beforeunload", () => {
 
 initConverterEngine();
 updateOutputControls();
-setQualityValue(qualitySlider.value);
+setQualityFromPreset(qualitySlider.value);
 loadBuildMeta();
 
 function handleFiles(fileList) {
@@ -174,7 +180,8 @@ async function convertAll() {
   convertBtn.disabled = true;
   downloadAllBtn.disabled = true;
 
-  const quality = Number(qualitySlider.value) / 100;
+  const qualityPercent = currentQuality;
+  const quality = qualityPercent / 100;
   const targetType = outputFormat.value;
   const target = OUTPUT_FORMATS[targetType] || OUTPUT_FORMATS["image/webp"];
 
@@ -380,14 +387,33 @@ function updateOutputControls() {
   convertBtn.textContent = `Converti in ${target.label}`;
 }
 
-function setQualityValue(rawValue) {
+function setQualityFromSlider(rawValue) {
+  const normalized = normalizeQualityValue(rawValue, QUALITY_SLIDER_MIN);
+  applyQuality(normalized);
+}
+
+function setQualityFromPreset(rawValue) {
+  const normalized = normalizeQualityValue(rawValue, QUALITY_SLIDER_MIN);
+  applyQuality(normalized);
+}
+
+function setQualityFromInput(rawValue) {
+  const normalized = normalizeQualityValue(rawValue, QUALITY_INPUT_MIN);
+  applyQuality(normalized);
+}
+
+function applyQuality(value) {
+  currentQuality = value;
+  qualityInput.value = String(value);
+  qualityValue.textContent = String(value);
+  qualitySlider.value = String(Math.max(QUALITY_SLIDER_MIN, value));
+  updateQualityPresetState(value);
+}
+
+function normalizeQualityValue(rawValue, minValue) {
   const parsed = Number(rawValue);
-  if (!Number.isFinite(parsed)) return;
-  const normalized = Math.min(100, Math.max(50, Math.round(parsed)));
-  qualitySlider.value = String(normalized);
-  qualityInput.value = String(normalized);
-  qualityValue.textContent = String(normalized);
-  updateQualityPresetState(normalized);
+  if (!Number.isFinite(parsed)) return QUALITY_DEFAULT;
+  return Math.min(QUALITY_MAX, Math.max(minValue, Math.round(parsed)));
 }
 
 function updateQualityPresetState(value) {
