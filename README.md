@@ -1,7 +1,11 @@
-# WebP Converter (MVP)
+# Image Converter (MVP)
 
-Applicazione statica browser-based per convertire immagini in WebP in autonomia.
+Applicazione statica browser-based per convertire immagini tra formati diversi in autonomia.
 Parte della suite di tools di [Search Foundry](https://www.searchfoundry.pro).
+
+## Contesto prodotto
+L'uso iniziale era riconvertire file WebP caricati con livelli di compressione non ottimali.
+Lo strumento e stato esteso per essere piu dinamico: consente conversione da piu formati verso un formato target, con controllo della compressione quando supportata.
 
 ## Uso interno (stato attuale)
 Questo repository e pensato per demo interna ai colleghi.
@@ -29,13 +33,13 @@ Poi apri:
 `http://localhost:8080`
 
 ## Test rapido senza server
-Puoi anche aprire direttamente `/Users/garethjax/code/wasm-picture/index.html` con doppio click.
+Puoi anche aprire direttamente `index.html` con doppio click.
 In modalita `file://` l'app usa fallback senza worker (funziona, ma puo essere meno reattiva).
 
 ## Nota tecnica
-Questa prima versione usa l'encoder WebP del browser nel worker per accelerare l'MVP.
+Questa prima versione usa l'encoder immagini del browser nel worker per accelerare l'MVP.
 L'interfaccia worker e pronta per sostituire il motore con libwebp WASM nel prossimo step.
 
 ## ZIP automatico su update
-E presente il workflow GitHub Actions `/Users/garethjax/code/wasm-picture/.github/workflows/package-zip.yml`.
+E presente il workflow GitHub Actions `.github/workflows/package-zip.yml`.
 Ad ogni push su `main` (o esecuzione manuale) viene creato uno ZIP aggiornato scaricabile dagli artifact del run.
