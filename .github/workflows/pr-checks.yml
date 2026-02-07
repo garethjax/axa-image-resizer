@@ -1,0 +1,30 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Syntax checks
+        run: |
+          node --check app.js
+          node --check converter-worker.js
+
+      - name: Package dry-run
+        run: |
+          mkdir -p package dist
+          cp index.html app.js converter-worker.js README.md PRD.md version.json package/
+          (cd package && zip -r ../dist/pr-check.zip .)
