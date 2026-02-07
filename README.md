@@ -39,6 +39,31 @@ In modalita `file://` l'app usa fallback senza worker (funziona, ma puo essere m
 ## Nota tecnica
 Questa versione usa l'encoder immagini del browser nel worker per mantenere il tool semplice e veloce.
 
+## Sviluppi futuri
+Possibile evoluzione: introdurre codec via WebAssembly (es. libwebp) mantenendo l'architettura a Worker.
+
+### Confronto pratico: browser encoder + Worker vs WASM
+`Browser encoder + Worker` (attuale):
+- bundle piu leggero;
+- setup semplice, senza inizializzazione WASM;
+- tempi molto rapidi su batch piccoli (es. 10 immagini);
+- ideale per flusso "converti e scarica" per utenti non tecnici.
+
+`libwebp/codec via WASM`:
+- controllo compressione piu fine (preset, effort, opzioni avanzate);
+- output piu coerente tra browser;
+- strada utile se servono codec o feature avanzate;
+- vantaggioso quando aumentano volume, esigenze di qualita e consistenza.
+
+### Tradeoff WASM da considerare
+- bundle piu pesante e first-load piu lento;
+- overhead di inizializzazione (su piccoli batch puo non ripagare);
+- maggiore complessita di manutenzione e testing cross-browser.
+
+### Decisione pragmatica attuale
+Per il caso d'uso corrente (fino a ~10 immagini, UX semplice, velocita immediata), resta consigliato browser encoder + Worker.
+Valutare WASM quando serve una riduzione peso sensibilmente migliore a parita di qualita, oppure controllo avanzato e uniformita output tra browser.
+
 ## ZIP automatico su update
 E presente il workflow GitHub Actions `.github/workflows/package-zip.yml`.
 Ad ogni push su `main` (o esecuzione manuale) viene creato uno ZIP aggiornato scaricabile dagli artifact del run.
