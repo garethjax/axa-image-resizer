@@ -1,5 +1,5 @@
 self.addEventListener("message", async (event) => {
-  const { id, buffer, type, quality } = event.data;
+  const { id, buffer, type, quality, outputType } = event.data;
 
   try {
     if (typeof OffscreenCanvas === "undefined") {
@@ -18,10 +18,15 @@ self.addEventListener("message", async (event) => {
     context.drawImage(bitmap, 0, 0);
     bitmap.close();
 
-    const outputBlob = await canvas.convertToBlob({
-      type: "image/webp",
-      quality,
-    });
+    const targetType = outputType || "image/webp";
+    const outputBlob = await canvas.convertToBlob(
+      targetType === "image/png"
+        ? { type: targetType }
+        : {
+            type: targetType,
+            quality,
+          }
+    );
     const blobBuffer = await outputBlob.arrayBuffer();
 
     self.postMessage(

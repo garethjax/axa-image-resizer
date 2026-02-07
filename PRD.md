@@ -3,7 +3,7 @@
 
 ## 1. Vision
 Realizzare una web app leggera che consenta agli utenti di:
-- caricare fino a **5 immagini** per volta;
+- caricare fino a **10 immagini** per volta;
 - convertirle in formato WebP con controllo qualità;
 - scaricare i file convertiti singolarmente o in un archivio ZIP;
 - mantenere tutto il processo lato browser, senza backend di conversione.
@@ -21,7 +21,7 @@ Utenti non tecnici che:
 ## 3. Scope MVP
 ### 3.1 In Scope
 - Upload drag & drop + file picker.
-- Fino a 5 file per batch.
+- Fino a 10 file per batch.
 - Formati input: JPEG, PNG, WebP.
 - Slider qualità WebP.
 - Conversione client-side via WASM in Web Worker.
@@ -40,7 +40,7 @@ Utenti non tecnici che:
 - Drag & drop area.
 - File picker multiplo.
 - Validazione immediata:
-  - max 5 file;
+  - max 10 file;
   - tipi supportati;
   - dimensione massima per file;
   - limite dimensione batch.
@@ -57,7 +57,7 @@ Utenti non tecnici che:
 - Download file singolo.
 - Download all tramite ZIP (JSZip).
 - Indicatore di avanzamento semplice:
-  - `file completati / file totali` (es. `1/5`);
+  - `file completati / file totali` (es. `1/10`);
   - timer trascorso dall'inizio elaborazione batch (mm:ss).
 - Stato per file:
   - queued;
@@ -69,7 +69,7 @@ Utenti non tecnici che:
 ### 5.1 Performance & Memory
 - Nessun carico server: conversione locale.
 - Budget memoria:
-  - max 5 file per batch;
+  - max 10 file per batch;
   - max **15 MB** per file input;
   - max **50 MP** (megapixel) per immagine;
   - max **120 MP** totale batch.
@@ -100,7 +100,7 @@ Utenti non tecnici che:
 - **Si**, preview post-conversione nel grid risultati (non confronto side-by-side nell'MVP).
 
 ### 6.3 Limiti dimensione file
-- **5 file max**.
+- **10 file max**.
 - **15 MB per file** hard limit.
 - Limiti megapixel per mitigare OOM: 50 MP per file / 120 MP batch.
 
@@ -114,7 +114,7 @@ Upload -> Validazione -> Decode immagine -> passaggio dati al Worker WASM -> enc
 ## 8. Detailed User Flows
 ### Flow A: Upload & Convert
 1. L'utente apre la pagina.
-2. Trascina o seleziona file (max 5).
+2. Trascina o seleziona file (max 10).
 3. Il sistema valida file e mostra thumbnail.
 4. L'utente imposta qualità (50-100).
 5. Clicca "Converti".
@@ -129,7 +129,7 @@ Upload -> Validazione -> Decode immagine -> passaggio dati al Worker WASM -> enc
 
 ## 9. Error Cases da Gestire
 - Formato non supportato (solo JPG/JPEG, PNG, WebP input).
-- Più di 5 file.
+- Più di 10 file.
 - File oltre 15 MB.
 - Immagine oltre limite megapixel.
 - Conversione fallita (WASM/memoria/corruzione file).
@@ -200,8 +200,8 @@ Ogni errore deve mostrare:
 - Error rate per categoria (validazione, conversione, ZIP).
 
 ## 16. QA Checklist (MVP)
-- Upload 1..5 file valido.
-- Blocco upload >5 file.
+- Upload 1..10 file valido.
+- Blocco upload >10 file.
 - Blocco file >15 MB.
 - Validazione tipi input: JPG/JPEG, PNG, WebP.
 - Slider qualita influenza output size.

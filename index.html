@@ -28,6 +28,10 @@
         <p class="mt-2 max-w-3xl text-sm text-slate-600">
           Converti e comprimi immagini in autonomia. Nessun upload al server: tutto avviene nel browser.
         </p>
+        <p class="mt-1 max-w-3xl text-sm text-slate-600">
+          Parte della suite di tools di
+          <a class="font-semibold text-brand-primary underline underline-offset-2" href="https://www.searchfoundry.pro" target="_blank" rel="noreferrer">Search Foundry</a>.
+        </p>
       </section>
 
       <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -37,7 +41,7 @@
         >
           <p class="text-lg font-semibold">Trascina qui le immagini</p>
           <p class="mt-2 text-sm text-slate-600">Formati supportati: JPG/JPEG, PNG, WebP</p>
-          <p class="text-sm text-slate-600">Massimo 5 file, 15 MB per file</p>
+          <p class="text-sm text-slate-600">Massimo 10 file, 15 MB per file</p>
           <button
             id="pickFilesBtn"
             type="button"
@@ -48,16 +52,29 @@
           <input id="fileInput" class="hidden" type="file" accept="image/jpeg,image/png,image/webp" multiple />
         </div>
 
-        <div class="mt-6 flex flex-col gap-4 rounded-xl border border-slate-200 p-4 md:flex-row md:items-center md:justify-between">
-          <label for="qualitySlider" class="font-medium">Qualita WebP: <span id="qualityValue">80</span></label>
-          <input id="qualitySlider" type="range" min="50" max="100" value="80" class="w-full md:max-w-md" />
+        <div class="mt-6 flex flex-col gap-4 rounded-xl border border-slate-200 p-4">
+          <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <label for="outputFormat" class="font-medium">Formato output</label>
+            <select id="outputFormat" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+              <option value="image/webp">WebP</option>
+              <option value="image/jpeg">JPEG</option>
+              <option value="image/png">PNG (lossless)</option>
+            </select>
+          </div>
+          <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <label for="qualitySlider" class="font-medium">Qualita (WebP/JPEG): <span id="qualityValue">80</span></label>
+            <input id="qualitySlider" type="range" min="50" max="100" value="80" class="w-full md:max-w-md" />
+          </div>
+          <p id="qualityHint" class="text-xs text-slate-500">
+            Per PNG la qualita non si applica (compressione lossless).
+          </p>
           <button
             id="convertBtn"
             type="button"
             class="rounded-lg bg-brand-accent px-5 py-2.5 font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:bg-slate-400"
             disabled
           >
-            Converti in WebP
+            Converti
           </button>
         </div>
 
@@ -78,7 +95,7 @@
 
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div class="flex items-center justify-between">
-            <h2 class="text-xl font-semibold">Risultati WebP</h2>
+            <h2 class="text-xl font-semibold">Risultati convertiti</h2>
             <button
               id="downloadAllBtn"
               type="button"

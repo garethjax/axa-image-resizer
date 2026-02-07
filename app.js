@@ -1,12 +1,14 @@
-const MAX_FILES = 5;
+const MAX_FILES = 10;
 const MAX_FILE_SIZE = 15 * 1024 * 1024;
 const SUPPORTED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 const dropzone = document.getElementById("dropzone");
 const pickFilesBtn = document.getElementById("pickFilesBtn");
 const fileInput = document.getElementById("fileInput");
+const outputFormat = document.getElementById("outputFormat");
 const qualitySlider = document.getElementById("qualitySlider");
 const qualityValue = document.getElementById("qualityValue");
+const qualityHint = document.getElementById("qualityHint");
 const convertBtn = document.getElementById("convertBtn");
 const downloadAllBtn = document.getElementById("downloadAllBtn");
 const inputList = document.getElementById("inputList");
@@ -17,6 +19,12 @@ const errorBox = document.getElementById("errorBox");
 const statusPanel = document.getElementById("statusPanel");
 const batchCounter = document.getElementById("batchCounter");
 const elapsedTime = document.getElementById("elapsedTime");
+
+const OUTPUT_FORMATS = {
+  "image/webp": { ext: "webp", label: "WebP" },
+  "image/jpeg": { ext: "jpg", label: "JPEG" },
+  "image/png": { ext: "png", label: "PNG" },
+};
 
 let worker = null;
 let workerEnabled = false;
@@ -30,6 +38,7 @@ let completedCount = 0;
 qualitySlider.addEventListener("input", () => {
   qualityValue.textContent = qualitySlider.value;
 });
+outputFormat.addEventListener("change", updateOutputControls);
 
 pickFilesBtn.addEventListener("click", () => fileInput.click());
 fileInput.addEventListener("change", (event) => handleFiles(event.target.files));
@@ -58,6 +67,7 @@ window.addEventListener("beforeunload", () => {
 });
 
 initConverterEngine();
+updateOutputControls();
 
 function handleFiles(fileList) {
   clearError();
@@ -152,6 +162,8 @@ async function convertAll() {
   downloadAllBtn.disabled = true;
 
   const quality = Number(qualitySlider.value) / 100;
+  const targetType = outputFormat.value;
+  const target = OUTPUT_FORMATS[targetType] || OUTPUT_FORMATS["image/webp"];
 
   for (let i = 0; i < selectedFiles.length; i += 1) {
     const arrayBuffer = await selectedFiles[i].file.arrayBuffer();
@@ -159,14 +171,16 @@ async function convertAll() {
       id: i,
       quality,
       type: selectedFiles[i].file.type,
+      outputType: targetType,
       buffer: arrayBuffer,
     });
 
     if (result.ok) {
-      const blob = new Blob([result.blobBuffer], { type: "image/webp" });
+      const blob = new Blob([result.blobBuffer], { type: targetType });
       converted.push({
-        name: toWebPName(selectedFiles[i].file.name),
+        name: toOutputName(selectedFiles[i].file.name, target.ext),
         blob,
+        mimeType: targetType,
         width: result.width,
         height: result.height,
         sourceName: selectedFiles[i].file.name,
@@ -198,7 +212,8 @@ async function downloadAllAsZip() {
 
   try {
     const blob = await zip.generateAsync({ type: "blob" });
-    downloadBlob(blob, `webp-converted-${Date.now()}.zip`);
+    const target = OUTPUT_FORMATS[outputFormat.value] || OUTPUT_FORMATS["image/webp"];
+    downloadBlob(blob, `${target.ext}-converted-${Date.now()}.zip`);
   } catch (error) {
     showError(`Errore nella creazione ZIP: ${error.message}`);
   }
@@ -267,16 +282,17 @@ async function convertInMainThread(message) {
     bitmap.close();
 
     const outputBlob = await new Promise((resolve, reject) => {
+      const qualityArg = message.outputType === "image/png" ? undefined : message.quality;
       canvas.toBlob(
         (blob) => {
           if (!blob) {
-            reject(new Error("Impossibile creare il blob WebP."));
+            reject(new Error("Impossibile creare il file convertito."));
             return;
           }
           resolve(blob);
         },
-        "image/webp",
-        message.quality
+        message.outputType,
+        qualityArg
       );
     });
     const blobBuffer = await outputBlob.arrayBuffer();
@@ -320,6 +336,15 @@ function initConverterEngine() {
   }
 }
 
+function updateOutputControls() {
+  const target = OUTPUT_FORMATS[outputFormat.value] || OUTPUT_FORMATS["image/webp"];
+  const qualityEnabled = outputFormat.value !== "image/png";
+  qualitySlider.disabled = !qualityEnabled;
+  qualitySlider.classList.toggle("opacity-50", !qualityEnabled);
+  qualityHint.classList.toggle("hidden", qualityEnabled);
+  convertBtn.textContent = `Converti in ${target.label}`;
+}
+
 function cleanupSelectedPreviews() {
   for (const item of selectedFiles) {
     URL.revokeObjectURL(item.previewUrl);
@@ -334,10 +359,10 @@ function cleanupConvertedPreviews() {
   }
 }
 
-function toWebPName(name) {
+function toOutputName(name, extension) {
   const extIndex = name.lastIndexOf(".");
   const base = extIndex >= 0 ? name.slice(0, extIndex) : name;
-  return `${base}.webp`;
+  return `${base}.${extension}`;
 }
 
 function humanBytes(bytes) {
