@@ -71,6 +71,30 @@
             <label for="qualitySlider" class="font-medium">Qualita (WebP/JPEG): <span id="qualityValue">80</span></label>
             <input id="qualitySlider" type="range" min="50" max="100" value="80" class="w-full md:max-w-md" />
           </div>
+          <div id="qualityPresets" class="grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-11">
+            <button type="button" data-quality-preset="50" class="rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700">50</button>
+            <button type="button" data-quality-preset="55" class="rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700">55</button>
+            <button type="button" data-quality-preset="60" class="rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700">60</button>
+            <button type="button" data-quality-preset="65" class="rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700">65</button>
+            <button type="button" data-quality-preset="70" class="rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700">70</button>
+            <button type="button" data-quality-preset="75" class="rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700">75</button>
+            <button type="button" data-quality-preset="80" class="rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700">80</button>
+            <button type="button" data-quality-preset="85" class="rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700">85</button>
+            <button type="button" data-quality-preset="90" class="rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700">90</button>
+            <button type="button" data-quality-preset="95" class="rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700">95</button>
+            <button type="button" data-quality-preset="100" class="rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700">100</button>
+          </div>
+          <div class="flex items-center gap-3">
+            <label for="qualityInput" class="text-sm text-slate-700">Qualita custom</label>
+            <input
+              id="qualityInput"
+              type="number"
+              min="50"
+              max="100"
+              value="80"
+              class="w-24 rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
+            />
+          </div>
           <p id="qualityHint" class="text-xs text-slate-500">
             Per PNG la qualita non si applica (compressione lossless).
           </p>

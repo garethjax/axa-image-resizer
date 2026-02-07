@@ -15,7 +15,7 @@ La visibilita resta privata finche il tool non viene pubblicato.
 - Upload: JPG/JPEG, PNG, WebP.
 - Limiti: max 10 file, 15 MB per file.
 - Formato output selezionabile: WebP, JPEG, PNG.
-- Qualita: slider 50-100 (usato per WebP/JPEG, non applicato a PNG).
+- Qualita: pulsanti preset 50-100 (step 5), slider e input numerico custom (usato per WebP/JPEG, non applicato a PNG).
 - Conversione in worker dedicato.
 - Indicatori processo: `n/10` + timer elapsed.
 - Download singolo o ZIP.
@@ -37,8 +37,7 @@ Puoi anche aprire direttamente `index.html` con doppio click.
 In modalita `file://` l'app usa fallback senza worker (funziona, ma puo essere meno reattiva).
 
 ## Nota tecnica
-Questa prima versione usa l'encoder immagini del browser nel worker per accelerare l'MVP.
-L'interfaccia worker e pronta per sostituire il motore con libwebp WASM nel prossimo step.
+Questa versione usa l'encoder immagini del browser nel worker per mantenere il tool semplice e veloce.
 
 ## ZIP automatico su update
 E presente il workflow GitHub Actions `.github/workflows/package-zip.yml`.

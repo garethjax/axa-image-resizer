@@ -8,6 +8,8 @@ const fileInput = document.getElementById("fileInput");
 const outputFormat = document.getElementById("outputFormat");
 const qualitySlider = document.getElementById("qualitySlider");
 const qualityValue = document.getElementById("qualityValue");
+const qualityInput = document.getElementById("qualityInput");
+const presetButtons = Array.from(document.querySelectorAll("[data-quality-preset]"));
 const qualityHint = document.getElementById("qualityHint");
 const convertBtn = document.getElementById("convertBtn");
 const downloadAllBtn = document.getElementById("downloadAllBtn");
@@ -38,14 +40,16 @@ let elapsedTimer = null;
 let completedCount = 0;
 
 const FALLBACK_BUILD_META = {
-  version: "v0.3.0-dev",
+  version: "v0.1.0",
   commitDate: "2026-02-07",
 };
 
-qualitySlider.addEventListener("input", () => {
-  qualityValue.textContent = qualitySlider.value;
-});
+qualitySlider.addEventListener("input", () => setQualityValue(qualitySlider.value));
+qualityInput.addEventListener("input", () => setQualityValue(qualityInput.value));
 outputFormat.addEventListener("change", updateOutputControls);
+presetButtons.forEach((button) => {
+  button.addEventListener("click", () => setQualityValue(button.dataset.qualityPreset));
+});
 
 pickFilesBtn.addEventListener("click", () => fileInput.click());
 fileInput.addEventListener("change", (event) => handleFiles(event.target.files));
@@ -75,6 +79,7 @@ window.addEventListener("beforeunload", () => {
 
 initConverterEngine();
 updateOutputControls();
+setQualityValue(qualitySlider.value);
 loadBuildMeta();
 
 function handleFiles(fileList) {
@@ -363,9 +368,36 @@ function updateOutputControls() {
   const target = OUTPUT_FORMATS[outputFormat.value] || OUTPUT_FORMATS["image/webp"];
   const qualityEnabled = outputFormat.value !== "image/png";
   qualitySlider.disabled = !qualityEnabled;
+  qualityInput.disabled = !qualityEnabled;
   qualitySlider.classList.toggle("opacity-50", !qualityEnabled);
+  qualityInput.classList.toggle("opacity-50", !qualityEnabled);
+  presetButtons.forEach((button) => {
+    button.disabled = !qualityEnabled;
+    button.classList.toggle("opacity-50", !qualityEnabled);
+    button.classList.toggle("cursor-not-allowed", !qualityEnabled);
+  });
   qualityHint.classList.toggle("hidden", qualityEnabled);
   convertBtn.textContent = `Converti in ${target.label}`;
+}
+
+function setQualityValue(rawValue) {
+  const parsed = Number(rawValue);
+  if (!Number.isFinite(parsed)) return;
+  const normalized = Math.min(100, Math.max(50, Math.round(parsed)));
+  qualitySlider.value = String(normalized);
+  qualityInput.value = String(normalized);
+  qualityValue.textContent = String(normalized);
+  updateQualityPresetState(normalized);
+}
+
+function updateQualityPresetState(value) {
+  presetButtons.forEach((button) => {
+    const buttonValue = Number(button.dataset.qualityPreset);
+    const isActive = buttonValue === value;
+    button.classList.toggle("bg-brand-primary", isActive);
+    button.classList.toggle("text-white", isActive);
+    button.classList.toggle("border-brand-primary", isActive);
+  });
 }
 
 function cleanupSelectedPreviews() {
