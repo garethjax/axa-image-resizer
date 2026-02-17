@@ -69,8 +69,8 @@ let currentQuality = QUALITY_DEFAULT;
 let comparisonVariants = []; // Per il comparatore
 
 const FALLBACK_BUILD_META = {
-  version: "v0.1.0",
-  commitDate: "2026-02-07",
+  version: "v0.5.0",
+  commitDate: "2026-02-17",
 };
 
 qualitySlider.addEventListener("input", () => setQualityFromSlider(qualitySlider.value));
@@ -421,7 +421,7 @@ function initConverterEngine() {
 
 async function loadBuildMeta() {
   try {
-    const response = await fetch("./version.json", { cache: "no-store" });
+    const response = await fetch(`./version.json?t=${Date.now()}`, { cache: "no-store" });
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
