@@ -28,7 +28,7 @@
     <section class="mb-6">
       <h1 class="text-3xl font-bold tracking-tight text-brand-primary">AXA Image Resizer</h1>
       <p class="mt-1 text-xs text-slate-500">
-        Versione: <span id="appVersion">v0.1.0</span>
+        Versione: <span id="appVersion">v0.5.0</span>
         <span class="mx-1">•</span>
         Commit date: <span id="appCommitDate">2026-02-17</span>
       </p>
@@ -201,6 +201,27 @@
       </div>
     </div>
 
+    <!-- MODALE FULLSCREEN -->
+    <div id="imageModal"
+      class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm transition-opacity duration-300">
+      <div class="relative max-h-full max-w-full flex items-center justify-center">
+        <button id="closeModalBtn"
+          class="absolute -right-4 -top-12 z-[60] rounded-full bg-white/10 p-2 text-white hover:bg-white/20 transition-colors sm:-right-12">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        <div id="modalImageContainer"
+          class="overflow-auto max-h-[90vh] max-w-[90vw] rounded-lg shadow-2xl custom-scrollbar">
+          <img id="modalImage" class="cursor-zoom-in object-contain transition-all duration-200" src=""
+            alt="Anteprima Fullscreen" />
+        </div>
+        <div
+          class="absolute -bottom-12 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-4 py-2 text-xs text-white backdrop-blur-md whitespace-nowrap">
+          Clicca l'immagine per zoom 100% / Adatta
+        </div>
+      </div>
+    </div>
   </main>
 
   <script src="./logica-app-26.js" defer></script>

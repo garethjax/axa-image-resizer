@@ -45,6 +45,12 @@ const comparisonGrid = document.getElementById("comparisonGrid");
 const compEmpty = document.getElementById("compEmpty");
 const sourceInfo = document.getElementById("sourceInfo");
 
+// Elementi Modal
+const imageModal = document.getElementById("imageModal");
+const closeModalBtn = document.getElementById("closeModalBtn");
+const modalImage = document.getElementById("modalImage");
+const modalImageContainer = document.getElementById("modalImageContainer");
+
 const OUTPUT_FORMATS = {
   "image/webp": { ext: "webp", label: "WebP" },
   "image/jpeg": { ext: "jpg", label: "JPEG" },
@@ -105,6 +111,13 @@ compDropzone.addEventListener("drop", (e) => {
     handleComparisonFile(e.dataTransfer.files[0]);
   }
 });
+
+// Eventi Modal
+closeModalBtn.addEventListener("click", closeModal);
+imageModal.addEventListener("click", (e) => {
+  if (e.target === imageModal) closeModal();
+});
+modalImage.addEventListener("click", toggleZoom);
 
 pickFilesBtn.addEventListener("click", () => fileInput.click());
 fileInput.addEventListener("change", (event) => handleFiles(event.target.files));
@@ -526,16 +539,54 @@ function renderComparisonCard(variant) {
         <p class="text-sm font-bold text-slate-900">${humanBytes(variant.blob.size)}</p>
         <p class="text-[10px] uppercase tracking-wider text-slate-500">${variant.width}x${variant.height}</p>
       </div>
-      <button class="rounded-lg bg-slate-100 p-2 text-brand-primary transition hover:bg-brand-primary hover:text-white">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
-        </svg>
-      </button>
+      <div class="flex gap-2">
+        <button class="expand-btn rounded-lg bg-slate-100 p-2 text-brand-primary transition hover:bg-brand-primary hover:text-white" title="Espandi">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M3 8V4m0 0h4M3 4l4 4m8 0V4m0 0h-4m4 0l-4 4m-8 4v4m0 0h4m-4 0l4-4m8 4v-4m0 0h-4m4 0l-4-4" />
+          </svg>
+        </button>
+        <button class="download-btn rounded-lg bg-slate-100 p-2 text-brand-primary transition hover:bg-brand-primary hover:text-white" title="Scarica">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
     </div>
   `;
 
-  card.querySelector("button").addEventListener("click", () => downloadBlob(variant.blob, variant.name));
+  card.querySelector(".download-btn").addEventListener("click", () => downloadBlob(variant.blob, variant.name));
+  card.querySelector(".expand-btn").addEventListener("click", () => openModal(variant.previewUrl));
   comparisonGrid.appendChild(card);
+}
+
+function openModal(url) {
+  modalImage.src = url;
+  modalImage.classList.remove("max-w-none", "max-h-none");
+  modalImage.classList.add("max-h-[90vh]", "max-w-[90vw]");
+  modalImage.dataset.zoomed = "false";
+  imageModal.classList.remove("hidden");
+  document.body.style.overflow = "hidden"; // Blocca scroll
+}
+
+function closeModal() {
+  imageModal.classList.add("hidden");
+  document.body.style.overflow = "";
+  modalImage.src = "";
+}
+
+function toggleZoom() {
+  const isZoomed = modalImage.dataset.zoomed === "true";
+  if (isZoomed) {
+    // Torna a Fit
+    modalImage.classList.remove("max-w-none", "max-h-none");
+    modalImage.classList.add("max-h-[90vh]", "max-w-[90vw]");
+    modalImage.dataset.zoomed = "false";
+  } else {
+    // Vai a 100%
+    modalImage.classList.remove("max-h-[90vh]", "max-w-[90vw]");
+    modalImage.classList.add("max-w-none", "max-h-none");
+    modalImage.dataset.zoomed = "true";
+  }
 }
 
 function setQualityFromSlider(rawValue) {
