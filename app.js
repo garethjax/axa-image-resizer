@@ -25,8 +25,25 @@ const errorBox = document.getElementById("errorBox");
 const statusPanel = document.getElementById("statusPanel");
 const batchCounter = document.getElementById("batchCounter");
 const elapsedTime = document.getElementById("elapsedTime");
-const appVersion = document.getElementById("appVersion");
 const appCommitDate = document.getElementById("appCommitDate");
+
+// Elementi Tab
+const tabBtnOptimizer = document.getElementById("tabBtnOptimizer");
+const tabBtnComparator = document.getElementById("tabBtnComparator");
+const sectionOptimizer = document.getElementById("sectionOptimizer");
+const sectionComparator = document.getElementById("sectionComparator");
+
+// Elementi Comparatore
+const compDropzone = document.getElementById("compDropzone");
+const compPickBtn = document.getElementById("compPickBtn");
+const compFileInput = document.getElementById("compFileInput");
+const compFormat = document.getElementById("compFormat");
+const compProgress = document.getElementById("compProgress");
+const compProgressBar = document.getElementById("compProgressBar");
+const comparisonResults = document.getElementById("comparisonResults");
+const comparisonGrid = document.getElementById("comparisonGrid");
+const compEmpty = document.getElementById("compEmpty");
+const sourceInfo = document.getElementById("sourceInfo");
 
 const OUTPUT_FORMATS = {
   "image/webp": { ext: "webp", label: "WebP" },
@@ -43,6 +60,7 @@ let startedAt = 0;
 let elapsedTimer = null;
 let completedCount = 0;
 let currentQuality = QUALITY_DEFAULT;
+let comparisonVariants = []; // Per il comparatore
 
 const FALLBACK_BUILD_META = {
   version: "v0.1.0",
@@ -55,6 +73,37 @@ qualityInput.addEventListener("blur", () => setQualityFromInput(qualityInput.val
 outputFormat.addEventListener("change", updateOutputControls);
 presetButtons.forEach((button) => {
   button.addEventListener("click", () => setQualityFromPreset(button.dataset.qualityPreset));
+});
+
+// Eventi Tab
+tabBtnOptimizer.addEventListener("click", () => switchTab("optimizer"));
+tabBtnComparator.addEventListener("click", () => switchTab("comparator"));
+
+// Eventi Comparatore
+compPickBtn.addEventListener("click", () => compFileInput.click());
+compFileInput.addEventListener("change", (event) => handleComparisonFile(event.target.files[0]));
+compFormat.addEventListener("change", () => {
+  if (comparisonVariants.length > 0) {
+    const firstVariant = comparisonVariants[0];
+    if (firstVariant && firstVariant.sourceFile) {
+      handleComparisonFile(firstVariant.sourceFile);
+    }
+  }
+});
+
+compDropzone.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  compDropzone.classList.add("border-brand-primary", "bg-blue-50");
+});
+compDropzone.addEventListener("dragleave", () => {
+  compDropzone.classList.remove("border-brand-primary", "bg-blue-50");
+});
+compDropzone.addEventListener("drop", (e) => {
+  e.preventDefault();
+  compDropzone.classList.remove("border-brand-primary", "bg-blue-50");
+  if (e.dataTransfer.files.length > 0) {
+    handleComparisonFile(e.dataTransfer.files[0]);
+  }
 });
 
 pickFilesBtn.addEventListener("click", () => fileInput.click());
@@ -80,6 +129,7 @@ downloadAllBtn.addEventListener("click", downloadAllAsZip);
 window.addEventListener("beforeunload", () => {
   cleanupSelectedPreviews();
   cleanupConvertedPreviews();
+  cleanupComparisonPreviews();
   if (worker) worker.terminate();
 });
 
@@ -384,7 +434,108 @@ function updateOutputControls() {
     button.classList.toggle("cursor-not-allowed", !qualityEnabled);
   });
   qualityHint.classList.toggle("hidden", qualityEnabled);
-  convertBtn.textContent = `Converti in ${target.label}`;
+  convertBtn.textContent = `Ottimizza come ${target.label}`;
+}
+
+function switchTab(tab) {
+  const isOptimizer = tab === "optimizer";
+
+  // Update Buttons
+  tabBtnOptimizer.classList.toggle("bg-white", isOptimizer);
+  tabBtnOptimizer.classList.toggle("text-brand-primary", isOptimizer);
+  tabBtnOptimizer.classList.toggle("shadow-sm", isOptimizer);
+  tabBtnOptimizer.classList.toggle("text-slate-600", !isOptimizer);
+
+  tabBtnComparator.classList.toggle("bg-white", !isOptimizer);
+  tabBtnComparator.classList.toggle("text-brand-primary", !isOptimizer);
+  tabBtnComparator.classList.toggle("shadow-sm", !isOptimizer);
+  tabBtnComparator.classList.toggle("text-slate-600", isOptimizer);
+
+  // Update Sections
+  sectionOptimizer.classList.toggle("hidden", !isOptimizer);
+  sectionComparator.classList.toggle("hidden", isOptimizer);
+}
+
+async function handleComparisonFile(file) {
+  if (!file) return;
+  if (!SUPPORTED_TYPES.has(file.type)) {
+    alert("Formato non supportato.");
+    return;
+  }
+  cleanupComparisonPreviews();
+  comparisonVariants = [];
+  compEmpty.classList.add("hidden");
+  comparisonResults.classList.remove("hidden");
+  compProgress.classList.remove("hidden");
+  comparisonGrid.innerHTML = "";
+
+  sourceInfo.textContent = `Originale: ${file.name} (${humanBytes(file.size)})`;
+
+  const targetType = compFormat.value;
+  const target = OUTPUT_FORMATS[targetType];
+  const arrayBuffer = await file.arrayBuffer();
+
+  const qualityLevels = [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50];
+  let processed = 0;
+
+  for (const q of qualityLevels) {
+    const result = await convertOne({
+      id: `comp-${q}`,
+      quality: q / 100,
+      type: file.type,
+      outputType: targetType,
+      buffer: arrayBuffer.slice(0), // Clone for worker safety
+    });
+
+    if (result.ok) {
+      const blob = new Blob([result.blobBuffer], { type: targetType });
+      const variant = {
+        quality: q,
+        blob,
+        name: toOutputName(file.name, target.ext),
+        width: result.width,
+        height: result.height,
+        previewUrl: URL.createObjectURL(blob),
+        sourceFile: file // Keep reference to allow format switching
+      };
+      comparisonVariants.push(variant);
+      renderComparisonCard(variant);
+    }
+
+    processed++;
+    compProgressBar.style.width = `${(processed / qualityLevels.length) * 100}%`;
+  }
+
+  compProgress.classList.add("hidden");
+  compProgressBar.style.width = "0%";
+}
+
+function renderComparisonCard(variant) {
+  const card = document.createElement("div");
+  card.className = "group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md";
+
+  card.innerHTML = `
+    <div class="relative mb-4 aspect-video overflow-hidden rounded-xl bg-slate-100">
+      <img src="${variant.previewUrl}" class="h-full w-full object-contain transition group-hover:scale-105" />
+      <div class="absolute right-2 top-2 rounded-lg bg-black/60 px-2 py-1 text-xs font-bold text-white backdrop-blur-md">
+        Q: ${variant.quality}%
+      </div>
+    </div>
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-sm font-bold text-slate-900">${humanBytes(variant.blob.size)}</p>
+        <p class="text-[10px] uppercase tracking-wider text-slate-500">${variant.width}x${variant.height}</p>
+      </div>
+      <button class="rounded-lg bg-slate-100 p-2 text-brand-primary transition hover:bg-brand-primary hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+        </svg>
+      </button>
+    </div>
+  `;
+
+  card.querySelector("button").addEventListener("click", () => downloadBlob(variant.blob, variant.name));
+  comparisonGrid.appendChild(card);
 }
 
 function setQualityFromSlider(rawValue) {
@@ -461,4 +612,12 @@ function showError(message) {
 function clearError() {
   errorBox.classList.add("hidden");
   errorBox.textContent = "";
+}
+
+function cleanupComparisonPreviews() {
+  for (const item of comparisonVariants) {
+    if (item.previewUrl) {
+      URL.revokeObjectURL(item.previewUrl);
+    }
+  }
 }
